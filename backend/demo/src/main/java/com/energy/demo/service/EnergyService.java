@@ -1,30 +1,37 @@
 package com.energy.demo.service;
 
 import com.energy.demo.repository.EnergyRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Map;
-//Centralizo las consultas de sql
+
 @Service
 public class EnergyService {
 
-    @Autowired
-    private EnergyRepository energyRepository;
+    private final EnergyRepository energyRepository;
 
-    public List<Map<String, Object>> getProductionBySource() {
-        return energyRepository.getProductionBySource();
+    public EnergyService(EnergyRepository energyRepository) {
+        this.energyRepository = energyRepository;
     }
 
-    public List<Map<String, Object>> getRenewableShareByRegion() {
-        return energyRepository.getRenewableShareByRegion();
+    public List<Map<String, Object>> getProductionBySource(int year) {
+        return energyRepository.getProductionBySource(year);
     }
 
-    public List<Map<String, Object>> getColombiaSolarTrend() {
-        return energyRepository.getColombiaSolarTrend();
+    public List<Map<String, Object>> getRenewableShareByRegion(int year) {
+        return energyRepository.getRenewableShareByRegion(year);
     }
 
-    public List<Map<String, Object>> getTopWindProducers() {
-        return energyRepository.getTopWindProducers();
+    public List<Map<String, Object>> getCountrySourceTrend(String country, String source) {
+        return energyRepository.getCountrySourceTrend(country, source);
+    }
+
+    public List<Map<String, Object>> getTopProducersBySource(String source, int year, int limit) {
+        return energyRepository.getTopProducersBySource(source, year, limit);
+    }
+
+    public List<Map<String, Object>> globalShareBySource(int year) {
+        return energyRepository.globalShareBySource(year);
     }
 }
