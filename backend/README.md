@@ -1,231 +1,286 @@
-# Backend Transicion Energetica
+# Backend Transición Energética
 
-API REST desarrollada con Spring Boot para analizar datos de generación eléctrica y participación de energías renovables a partir de un dataset energético.
+API REST desarrollada con **Spring Boot y PostgreSQL** para consultar información sobre generación de energía renovable en diferentes países y regiones.
 
-El sistema permite consultar producción energética por fuente, tendencias por país, participación global de energías y gestionar usuarios.
+El sistema también incluye **gestión de usuarios, autenticación con JWT y control de acceso por roles** para proteger los endpoints.
 
---------------------------------------------------
+Este proyecto fue realizado como práctica de backend aplicando arquitectura por capas, consultas SQL analíticas y seguridad básica con Spring Security.
 
-TECNOLOGIAS UTILIZADAS
+---
 
-- Java 17
+# Tecnologías utilizadas
+
+- Java
 - Spring Boot
+- Spring Security
+- JWT (Json Web Token)
+- PostgreSQL
 - Spring Data JPA
-- PostgreSQL
-- Maven
 - Swagger / OpenAPI
-
---------------------------------------------------
-
-ESTRUCTURA DEL PROYECTO
-
-BackendTransicionEnergetica
-│
-├── README.md
-│
-└── backend
-    └── demo
-        ├── pom.xml
-        └── src
-            ├── main
-            │   ├── java
-            │   │   └── com.energy.demo
-            │   │        ├── controller
-            │   │        ├── service
-            │   │        ├── repository
-            │   │        └── model
-            │   │
-            │   └── resources
-            │        └── application.properties
-            │
-            └── test
-
---------------------------------------------------
-
-REQUISITOS
-
-Antes de ejecutar el proyecto debes tener instalado:
-
-- Java 17 o superior
 - Maven
-- PostgreSQL
-- Git
 
-Puedes verificar las versiones con:
+---
 
-java -version
-mvn -version
+# Arquitectura del proyecto
 
---------------------------------------------------
+El proyecto sigue una arquitectura por capas para mantener el código organizado y separar responsabilidades.
 
-CONFIGURACION DE BASE DE DATOS
+## Estructura del proyecto
 
-Editar el archivo:
+```
+src/main/java/com/energy/demo
 
-src/main/resources/application.properties
+│
+├── config
+│   ├── SecurityConfig.java
+│   └── OpenApiConfig.java
+│
+├── controller
+│   ├── AppUserController.java
+│   ├── AuthController.java
+│   ├── EnergyController.java
+│   └── HomeController.java
+│
+├── controller/dto
+│   ├── ApiResponse.java
+│   ├── CreateUserRequest.java
+│   ├── UpdateUserRequest.java
+│   ├── LoginRequest.java
+│   ├── LoginResponse.java
+│   └── UserResponse.java
+│
+├── exception
+│   └── GlobalExceptionHandler.java
+│
+├── model
+│   ├── AppUser.java
+│   └── Role.java
+│
+├── repository
+│   ├── AppUserRepository.java
+│   └── EnergyRepository.java
+│
+├── security
+│   ├── CustomUserDetailsService.java
+│   ├── JwtAuthFilter.java
+│   └── JwtService.java
+│
+├── service
+│   ├── AppUserService.java
+│   ├── AuthService.java
+│   └── EnergyService.java
+│
+└── DemoApplication.java
+```
 
-Ejemplo de configuración:
+Cada capa tiene una responsabilidad clara:
 
-spring.datasource.url=jdbc:postgresql://localhost:5432/energy_db
-spring.datasource.username=postgres
-spring.datasource.password=1234
+config  
+Configuraciones generales del sistema como seguridad y Swagger.
 
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
+controller  
+Contiene los endpoints REST que exponen la funcionalidad de la API.
 
-Antes de ejecutar el backend debes crear la base de datos:
+dto  
+Objetos que se utilizan para enviar o recibir información entre cliente y servidor.
 
-CREATE DATABASE energy_db;
+exception  
+Manejo global de errores.
 
---------------------------------------------------
+model  
+Entidades del sistema que representan tablas de la base de datos.
 
-COMO EJECUTAR EL PROYECTO
+repository  
+Acceso a base de datos y consultas SQL.
 
-Ir a la carpeta del backend:
+security  
+Manejo de autenticación y validación del token JWT.
 
-cd backend/demo
+service  
+Contiene la lógica de negocio de la aplicación.
 
-Compilar el proyecto:
+---
 
-mvn clean install
+# Autenticación y seguridad
 
-Ejecutar la aplicación:
+La aplicación utiliza **JWT (Json Web Token)** para proteger los endpoints.
 
-mvn spring-boot:run
+Flujo básico:
 
-Si todo está correcto verás en la consola algo similar a:
+1. El usuario inicia sesión con sus credenciales.
+2. El sistema genera un token JWT.
+3. El cliente envía el token en las siguientes peticiones.
 
-Tomcat started on port 8080
-Started DemoApplication
+Ejemplo de header:
 
---------------------------------------------------
+```
+Authorization: Bearer TOKEN_JWT
+```
 
-DOCUMENTACION DE LA API
+---
 
-Una vez el backend esté ejecutándose puedes acceder a Swagger en:
+# Roles del sistema
 
-http://localhost:8080/swagger-ui/index.html
+| Rol | Permisos |
+|----|----|
+| ADMIN | Acceso completo al sistema |
+| USER | Solo lectura de información |
 
-Desde esta interfaz puedes probar todos los endpoints de la API.
+---
 
---------------------------------------------------
+# Endpoints principales
 
-ENDPOINTS PRINCIPALES
+## Autenticación
 
-Producción energética por fuente
+### Login
 
-GET /api/energy/production-by-source?year=2021
+```
+POST /api/auth/login
+```
 
+Ejemplo de body:
 
-Participación de renovables por región
-
-GET /api/energy/renewable-share-by-region?year=2021
-
-
-Tendencia de energía por país y fuente
-
-GET /api/energy/trend?country=Colombia&source=Solar
-
-
-Top países productores por fuente
-
-GET /api/energy/top-producers?source=Wind&year=2021&limit=10
-
-
-Participación global por fuente energética
-
-GET /api/energy/global-share?year=2021
-
---------------------------------------------------
-
-GESTION DE USUARIOS
-
-CRUD disponible en:
-
-/api/users
-
-Operaciones disponibles:
-
-- Crear usuario
-- Listar usuarios
-- Obtener usuario por ID
-- Actualizar usuario
-- Eliminar usuario
-
---------------------------------------------------
-
-EJEMPLO DE RESPUESTA JSON
-
-Consulta:
-
-GET /api/energy/global-share?year=2021
+```json
+{
+  "email": "admin@correo.com",
+  "password": "123456"
+}
+```
 
 Respuesta:
 
-[
-  {
-    "source": "Hydro",
-    "total_generation_twh": 4200,
-    "percentage_share": 29.5
-  },
-  {
-    "source": "Coal",
-    "total_generation_twh": 3800,
-    "percentage_share": 26.7
-  }
-]
+```json
+{
+  "token": "jwt-token",
+  "type": "Bearer",
+  "email": "admin@correo.com",
+  "role": "ADMIN"
+}
+```
 
---------------------------------------------------
+---
 
-AUTOR
+# Gestión de usuarios
 
-Proyecto desarrollado por Ella Acosta como parte de un proyecto académico de análisis de datos energéticos utilizando Spring Boot.
-git add README.md
-git commit -m "docs: add project README"
-git push
+| Método | Endpoint | Descripción |
+|------|------|------|
+| POST | /api/users | Crear usuario |
+| GET | /api/users | Listar usuarios |
+| GET | /api/users/{id} | Obtener usuario |
+| PUT | /api/users/{id} | Actualizar usuario |
+| DELETE | /api/users/{id} | Eliminar usuario |
 
---------------------------------------------------
+---
 
-MODELO DE DATOS
+# Consultas energéticas
 
-El sistema utiliza un modelo tipo **Data Warehouse** con tablas de hechos y dimensiones para analizar datos energéticos.
+La API incluye **5 consultas principales sobre generación energética**.
 
-Tablas principales:
+### 1. Producción por fuente energética
 
-dim_entity  
-Contiene países o regiones.
+```
+GET /api/energy/production-by-source?year=2021
+```
 
-Campos principales:
-- entity_id
-- name
-- entity_type
+Muestra la generación total por fuente energética en cada región.
 
-dim_source  
-Contiene las fuentes de energía.
+---
 
-Campos principales:
-- source_id
-- source_name
+### 2. Participación renovable por región
 
-fact_generation_twh  
-Tabla de hechos que almacena la generación eléctrica por fuente.
+```
+GET /api/energy/renewable-share-by-region?year=2021
+```
 
-Campos principales:
-- entity_id
-- source_id
-- year
-- value_twh
+Muestra el porcentaje de electricidad renovable por región.
 
-fact_renewables_share_electricity  
-Contiene el porcentaje de electricidad generada a partir de fuentes renovables.
+---
 
-Campos principales:
-- entity_id
-- year
-- renewables_pct
+### 3. Tendencia de generación por país y fuente
 
-Relaciones principales:
+```
+GET /api/energy/trend?country=Germany&source=Wind
+```
 
-entity (1) ----- (N) fact_generation_twh  
-source (1) ----- (N) fact_generation_twh  
-entity (1) ----- (N) fact_renewables_share_electricity
+Permite analizar cómo cambia la generación de una fuente energética a lo largo del tiempo.
+
+---
+
+### 4. Top países productores por fuente
+
+```
+GET /api/energy/top-producers?source=Solar&year=2021&limit=10
+```
+
+Lista los países con mayor producción para una fuente energética.
+
+---
+
+### 5. Participación global por fuente
+
+```
+GET /api/energy/global-share?year=2021
+```
+
+Calcula el porcentaje que representa cada fuente energética en la generación global.
+
+---
+
+# Documentación de la API
+
+Swagger permite probar los endpoints directamente desde el navegador.
+
+```
+http://localhost:8083/swagger-ui/index.html
+```
+
+Desde Swagger también se puede autenticar usando el token JWT.
+
+---
+
+# Configuración de base de datos
+
+El proyecto utiliza **PostgreSQL**.
+
+Ejemplo de configuración en `application.properties`:
+
+```
+spring.datasource.url=jdbc:postgresql://localhost:5432/energy_app
+spring.datasource.username=ella
+spring.datasource.password=12345
+spring.jpa.hibernate.ddl-auto=update
+```
+
+---
+
+# Cómo ejecutar el proyecto
+
+1. Clonar el repositorio
+
+```
+git clone REPOSITORIO
+```
+
+2. Entrar al proyecto
+
+```
+cd BackendTransicionEnergetica
+```
+
+3. Ejecutar la aplicación
+
+```
+mvn spring-boot:run
+```
+
+La API quedará disponible en:
+
+```
+http://localhost:8083
+```
+
+---
+
+# Autor
+
+Ella Acosta - Proyecto académico desarrollado como práctica de backend utilizando **Spring Boot, PostgreSQL y APIs REST**.
