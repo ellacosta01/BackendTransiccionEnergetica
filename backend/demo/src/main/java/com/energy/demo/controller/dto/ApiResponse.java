@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 
 //Normaliza los responses dde las apis, le da la misma estructura a todos
 
+// Estructura estandar para las respuestas de la API.
+
 public class ApiResponse<T> {
     private String message;
     private T data;

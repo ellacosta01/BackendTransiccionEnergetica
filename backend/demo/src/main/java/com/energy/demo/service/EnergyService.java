@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+// Logica de negocio para consultas de datos de energía.
 public class EnergyService {
 
     private final EnergyRepository energyRepository;

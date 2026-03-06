@@ -183,3 +183,49 @@ Proyecto desarrollado por Ella Acosta como parte de un proyecto académico de an
 git add README.md
 git commit -m "docs: add project README"
 git push
+
+--------------------------------------------------
+
+MODELO DE DATOS
+
+El sistema utiliza un modelo tipo **Data Warehouse** con tablas de hechos y dimensiones para analizar datos energéticos.
+
+Tablas principales:
+
+dim_entity  
+Contiene países o regiones.
+
+Campos principales:
+- entity_id
+- name
+- entity_type
+
+dim_source  
+Contiene las fuentes de energía.
+
+Campos principales:
+- source_id
+- source_name
+
+fact_generation_twh  
+Tabla de hechos que almacena la generación eléctrica por fuente.
+
+Campos principales:
+- entity_id
+- source_id
+- year
+- value_twh
+
+fact_renewables_share_electricity  
+Contiene el porcentaje de electricidad generada a partir de fuentes renovables.
+
+Campos principales:
+- entity_id
+- year
+- renewables_pct
+
+Relaciones principales:
+
+entity (1) ----- (N) fact_generation_twh  
+source (1) ----- (N) fact_generation_twh  
+entity (1) ----- (N) fact_renewables_share_electricity

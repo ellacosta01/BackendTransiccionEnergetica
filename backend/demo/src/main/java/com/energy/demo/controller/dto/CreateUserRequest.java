@@ -3,6 +3,7 @@ package com.energy.demo.controller.dto;
 import jakarta.validation.constraints.*;
 
 //Validaciones para la creacion  del usuario basicamente especificamos que los datos del body sean obligatorios.
+// DTO para recibir datos al crear un usuario.
 
 public class CreateUserRequest {
     @NotBlank(message = "El nombre es obligatorio")

@@ -1,34 +1,55 @@
 package com.energy.demo.config;
 
+import com.energy.demo.security.JwtAuthFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 public class SecurityConfig {
 
-    // Encriptar la contraseña (¡BCrypt es el estándar, vas bien!)
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+  private final JwtAuthFilter jwtAuthFilter;
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable()) // Desact CSRF para permitir POST sin token (clave para Postman/Swagger)
-            .authorizeHttpRequests(auth -> auth
-                // para que Swagger no se bloquee:
-                .requestMatchers(
-                    "/v3/api-docs/**",
-                    "/swagger-ui/**",
-                    "/swagger-ui.html"
-                ).permitAll()
-                // permiso a todas las appis pa que no pidan login
-                .anyRequest().permitAll()
-            );
-        return http.build();
-    }
+  public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
+    this.jwtAuthFilter = jwtAuthFilter;
+  }
+
+  @Bean
+  public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+  }
+// Configura la seguridad de la aplicación: JWT, roles y acceso a endpoints.
+  @Bean
+  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    http
+      .csrf(csrf -> csrf.disable())
+      .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+      .authorizeHttpRequests(auth -> auth
+        // Swagger libre
+        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+
+        // Auth libre login-registRO
+        .requestMatchers("/api/auth/**").permitAll()
+
+        // LECTURA- USER y ADMIN
+        .requestMatchers(HttpMethod.GET, "/api/**").hasAnyRole("USER", "ADMIN")
+
+        // ESCRITURA- solo ADMIN
+        .requestMatchers(HttpMethod.POST, "/api/**").hasRole("ADMIN")
+        .requestMatchers(HttpMethod.PUT, "/api/**").hasRole("ADMIN")
+        .requestMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
+
+        // lo demása DEBE SER Autenticado
+        .anyRequest().authenticated()
+      )
+      .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+    return http.build();
+  }
 }
