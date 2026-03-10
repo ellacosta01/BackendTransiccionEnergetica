@@ -14,42 +14,46 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Configuration
 public class SecurityConfig {
 
-  private final JwtAuthFilter jwtAuthFilter;
+    private final JwtAuthFilter jwtAuthFilter;
 
-  public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
-    this.jwtAuthFilter = jwtAuthFilter;
-  }
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
+        this.jwtAuthFilter = jwtAuthFilter;
+    }
 
-  @Bean
-  public PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
-  }
-// Configura la seguridad de la aplicación: JWT, roles y acceso a endpoints.
-  @Bean
-  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    http
-      .csrf(csrf -> csrf.disable())
-      .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-      .authorizeHttpRequests(auth -> auth
-        // Swagger libre
-        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
-        // Auth libre login-registRO
-        .requestMatchers("/api/auth/**").permitAll()
+    // Configura la seguridad de la aplicación: JWT, roles y acceso a endpoints.
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                // Swagger libre
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 
-        // LECTURA- USER y ADMIN
-        .requestMatchers(HttpMethod.GET, "/api/**").hasAnyRole("USER", "ADMIN")
+                // Auth libre
+                .requestMatchers("/api/auth/**").permitAll()
 
-        // ESCRITURA- solo ADMIN
-        .requestMatchers(HttpMethod.POST, "/api/**").hasRole("ADMIN")
-        .requestMatchers(HttpMethod.PUT, "/api/**").hasRole("ADMIN")
-        .requestMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
+                // Registro de usuario libre
+                .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
 
-        // lo demása DEBE SER Autenticado
-        .anyRequest().authenticated()
-      )
-      .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                // Lectura: USER y ADMIN
+                .requestMatchers(HttpMethod.GET, "/api/**").hasAnyRole("USER", "ADMIN")
 
-    return http.build();
-  }
+                // Escritura: solo ADMIN
+                .requestMatchers(HttpMethod.POST, "/api/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
+
+                // Lo demás debe estar autenticado
+                .anyRequest().authenticated()
+            )
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
 }

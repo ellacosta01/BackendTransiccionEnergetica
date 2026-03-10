@@ -1,5 +1,6 @@
 package com.energy.demo.controller;
 
+import com.energy.demo.controller.dto.CreateUserRequest;
 import com.energy.demo.model.AppUser;
 import com.energy.demo.service.AppUserService;
 import jakarta.validation.Valid;
@@ -8,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-// Controlador REST para gestionar usuarios crear, listar, actualizar y eliminar
+
 @RestController
 @RequestMapping("/api/users")
 public class AppUserController {
@@ -19,32 +20,27 @@ public class AppUserController {
         this.appUserService = appUserService;
     }
 
-    // GET /api/users
     @GetMapping
     public ResponseEntity<List<AppUser>> getAll() {
         return ResponseEntity.ok(appUserService.getAll());
     }
 
-    // GET /api/users/{id}
     @GetMapping("/{id}")
     public ResponseEntity<AppUser> getById(@PathVariable Long id) {
         return ResponseEntity.ok(appUserService.getById(id));
     }
 
-    // POST /api/users
     @PostMapping
-    public ResponseEntity<AppUser> create(@Valid @RequestBody AppUser request) {
+    public ResponseEntity<AppUser> create(@Valid @RequestBody CreateUserRequest request) {
         AppUser created = appUserService.create(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
-    // PUT /api/users/{id}
     @PutMapping("/{id}")
     public ResponseEntity<AppUser> update(@PathVariable Long id, @RequestBody AppUser request) {
         return ResponseEntity.ok(appUserService.update(id, request));
     }
 
-    // DELETE /api/users/{id}
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         appUserService.delete(id);

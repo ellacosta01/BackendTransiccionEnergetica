@@ -1,15 +1,16 @@
 package com.energy.demo.controller;
 
 import com.energy.demo.service.EnergyService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-// Repositorio con consultas SQL para datos de energía.
+
+// Controlador REST que expone consultas analíticas sobre datos de energía.
 @RestController
 @RequestMapping("/api/energy")
-// Expone endpoints para consultar datos de energía producción, tendencias, etc.
 public class EnergyController {
 
     private final EnergyService energyService;
@@ -18,7 +19,10 @@ public class EnergyController {
         this.energyService = energyService;
     }
 
-    // Producción total por fuente agrupada por región (año dinámico)
+    @Operation(
+        summary = "Producción total de energía renovable por fuente y región",
+        description = "Obtiene la producción total de energía renovable por tipo de fuente en un año específico, agrupada por regiones."
+    )
     @GetMapping("/production-by-source")
     public ResponseEntity<List<Map<String, Object>>> productionBySource(
             @RequestParam(defaultValue = "2021") int year
@@ -26,7 +30,10 @@ public class EnergyController {
         return ResponseEntity.ok(energyService.getProductionBySource(year));
     }
 
-    //  % renovables vs fósil por región (año dinámico)
+    @Operation(
+        summary = "Porcentaje de energía renovable en el consumo eléctrico por región",
+        description = "Calcula el porcentaje de participación de la energía renovable frente a fuentes fósiles en cada región para un año específico."
+    )
     @GetMapping("/renewable-share-by-region")
     public ResponseEntity<List<Map<String, Object>>> renewableShareByRegion(
             @RequestParam(defaultValue = "2021") int year
@@ -34,7 +41,10 @@ public class EnergyController {
         return ResponseEntity.ok(energyService.getRenewableShareByRegion(year));
     }
 
-    //  Evolución de una fuente en un país (country + source dinámicos)
+    @Operation(
+        summary = "Tendencia de producción o capacidad por país y fuente",
+        description = "Obtiene la evolución a lo largo de los años de una fuente de energía específica para un país determinado, por ejemplo energía solar en Colombia."
+    )
     @GetMapping("/trend")
     public ResponseEntity<List<Map<String, Object>>> countrySourceTrend(
             @RequestParam(defaultValue = "Colombia") String country,
@@ -43,19 +53,24 @@ public class EnergyController {
         return ResponseEntity.ok(energyService.getCountrySourceTrend(country, source));
     }
 
-    // Top de países productores por fuente y año
+    @Operation(
+        summary = "Top países productores por fuente energética",
+        description = "Obtiene el ranking de los países con mayor producción de una fuente de energía específica en un año determinado. Por defecto muestra los 10 primeros."
+    )
     @GetMapping("/top-producers")
     public ResponseEntity<List<Map<String, Object>>> topProducersBySource(
             @RequestParam(defaultValue = "Wind") String source,
             @RequestParam(defaultValue = "2021") int year,
             @RequestParam(defaultValue = "10") int limit
     ) {
-    // limit defensivo para que nadie pida 50000 y reviente tu BD
         int safeLimit = Math.max(1, Math.min(limit, 100));
         return ResponseEntity.ok(energyService.getTopProducersBySource(source, year, safeLimit));
     }
 
-    //Participación global por fuente
+    @Operation(
+        summary = "Participación global de las fuentes de energía",
+        description = "Lista todas las fuentes de energía y su participación en el consumo o producción total a nivel global para un año específico."
+    )
     @GetMapping("/global-share")
     public ResponseEntity<List<Map<String, Object>>> globalShareBySource(
             @RequestParam(defaultValue = "2021") int year
